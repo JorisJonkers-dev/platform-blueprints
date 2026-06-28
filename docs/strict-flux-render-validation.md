@@ -10,18 +10,19 @@ they reach a cluster:
 
 ## One-Job Adoption
 
-Add a job that calls the reusable workflow from `ExtraToast/github-workflows`:
+Add a job that calls the reusable workflow from
+`JorisJonkers-dev/github-workflows`:
 
 ```yaml
 jobs:
   flux-render-validate:
-    uses: ExtraToast/github-workflows/.github/workflows/flux-render-validate.yml@main
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/flux-render-validate.yml@v0.6.0
     with:
       overlay-paths: |
         path/to/flux/overlay
       mode: strict
-      crd-catalog-source: ExtraToast/platform-blueprints
-      crd-catalog-ref: main
+      crd-catalog-source: JorisJonkers-dev/platform-blueprints
+      crd-catalog-ref: v1.1.0
 ```
 
 The reusable workflow checks out the caller repository, installs pinned

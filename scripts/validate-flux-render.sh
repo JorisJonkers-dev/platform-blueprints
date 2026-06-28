@@ -57,6 +57,38 @@ append_render() {
   cat "${source}" >> "${output}"
 }
 
+normalize_crd_catalog() {
+  local source_catalog="$1"
+  local normalized_catalog
+  local schema_file
+  local schema_dir
+  local schema_base
+  local lower_base
+
+  normalized_catalog="$(mktemp -d "${TMPDIR:-/tmp}/flux-render-crds.XXXXXX")"
+  normalized_crd_catalogs+=("${normalized_catalog}")
+  cp -R "${source_catalog}/." "${normalized_catalog}/"
+
+  while IFS= read -r schema_file; do
+    schema_dir="$(dirname "${schema_file}")"
+    schema_base="$(basename "${schema_file}")"
+    lower_base="$(printf '%s' "${schema_base}" | tr '[:upper:]' '[:lower:]')"
+    if [[ "${schema_base}" != "${lower_base}" && ! -e "${schema_dir}/${lower_base}" ]]; then
+      cp "${schema_file}" "${schema_dir}/${lower_base}"
+    fi
+  done < <(find "${normalized_catalog}" -type f -name '*.json' | sort)
+
+  printf '%s\n' "${normalized_catalog}"
+}
+
+cleanup() {
+  local catalog
+  [[ -z "${render_output:-}" ]] || rm -f "${render_output}"
+  for catalog in "${normalized_crd_catalogs[@]:-}"; do
+    rm -rf "${catalog}"
+  done
+}
+
 render_flux_overlay() {
   local overlay="$1"
   local rendered="$2"
@@ -93,6 +125,7 @@ EOF
   if flux build kustomization "render-validation" \
       --path "${overlay}" \
       --kustomization-file "${flux_kustomization}" \
+      --dry-run \
       > "${flux_output}"; then
     append_render "${flux_output}" "${rendered}"
   else
@@ -108,6 +141,9 @@ mode="strict"
 overlays=()
 schema_locations=()
 crd_catalogs=()
+normalized_crd_catalogs=()
+render_output=""
+trap cleanup EXIT
 
 while [[ "$#" -gt 0 ]]; do
   case "$1" in
@@ -170,7 +206,8 @@ fi
 
 for crd_catalog in "${crd_catalogs[@]}"; do
   require_dir "CRD catalog" "${crd_catalog}"
-  schema_locations+=("${crd_catalog}/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json")
+  normalized_catalog="$(normalize_crd_catalog "${crd_catalog}")"
+  schema_locations+=("${normalized_catalog}/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json")
 done
 
 require_command kustomize
@@ -178,7 +215,6 @@ require_command flux
 require_command kubeconform
 
 render_output="$(mktemp "${TMPDIR:-/tmp}/flux-render-validation.XXXXXX.yaml")"
-trap 'rm -f "${render_output}"' EXIT
 
 for overlay in "${overlays[@]}"; do
   render_flux_overlay "${overlay}" "${render_output}"

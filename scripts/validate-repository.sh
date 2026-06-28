@@ -10,50 +10,84 @@ record_failure() {
   failures+=("$1")
 }
 
-check_required_files() {
+require_path() {
+  local path="$1"
+  [[ -e "${path}" ]] || record_failure "Missing required path: ${path}"
+}
+
+forbid_path() {
+  local path="$1"
+  [[ ! -e "${path}" ]] || record_failure "Forbidden moved path present: ${path}"
+}
+
+check_required_paths() {
   local required=(
-    flake.nix
     README.md
-    specs/001-platform-blueprints/spec.md
-    specs/001-platform-blueprints/plan.md
-    specs/001-platform-blueprints/tasks.md
-    modules/nixos/base.nix
-    modules/nixos/k3s.nix
-    modules/nixos/roles/k3s-bootstrap.nix
-    modules/nixos/roles/network-tailscale.nix
-    modules/nixos/roles/raspberry-pi-image.nix
-    lib/nixos/fleet-to-flake.nix
-    scripts/bootstrap-k3s-agent-token.sh
-    scripts/validate-flux.sh
-    scripts/validate-platform-render.sh
-    scripts/backup/backup-service-state.sh
-    scripts/backup/backup-service-snapshots.sh
-    scripts/backup/verify-backup-run.sh
-    scripts/backup/audit-backup-scope.sh
-    scripts/vault/compile-vault-bootstrap-policy.py
-    specs/003-round3-platform-packs/spec.md
-    specs/003-round3-platform-packs/plan.md
-    specs/003-round3-platform-packs/tasks.md
-    specs/004-round4-working-platform-packs/spec.md
-    specs/004-round4-working-platform-packs/plan.md
-    specs/004-round4-working-platform-packs/tasks.md
+    docs/dns-zone-policy.md
+    docs/restore-toolkit.md
+    docs/strict-flux-render-validation.md
+    examples/backup/manifest.tsv
+    examples/backup/expected-paths.tsv
+    examples/backup/snapshot-plugins.tsv
+    examples/restore/snapshot-restore-plugins.tsv
     packs/flux-core/README.md
     packs/edge/README.md
     packs/edge-middleware/README.md
     packs/rabbitmq-data-service/README.md
     packs/observability/README.md
-    examples/backup/manifest.tsv
+    schemas/crds
+    scripts/validate-flux.sh
+    scripts/validate-flux-render.sh
+    scripts/validate-platform-render.sh
+    scripts/backup/backup-service-state.sh
+    scripts/backup/backup-service-snapshots.sh
+    scripts/backup/verify-backup-run.sh
+    scripts/backup/audit-backup-scope.sh
+    scripts/restore/restore-hostpath-archive.sh
+    scripts/restore/restore-pvc-archive.sh
+    scripts/restore/restore-service-snapshots.sh
+    scripts/restore/verify-restore-run.sh
+    scripts/vault/compile-vault-bootstrap-policy.py
+    fixtures/vault-bootstrap-policy/minimal-policy.yaml
+    fixtures/vault-bootstrap-policy/full-policy.yaml
     tests/scripts/backup-tooling-smoke.sh
-    docs/dns-zone-policy.md
+    tests/scripts/restore-tooling-smoke.sh
+    tests/scripts/flux-render-validation-smoke.sh
     .github/workflows/ci.yml
     .github/workflows/release.yml
+    renovate.json
     release-please-config.json
     .release-please-manifest.json
   )
 
   local path
   for path in "${required[@]}"; do
-    [[ -f "${path}" ]] || record_failure "Missing required file: ${path}"
+    require_path "${path}"
+  done
+}
+
+check_forbidden_paths() {
+  local forbidden=(
+    "flake"".nix"
+    flake.lock
+    lib
+    modules
+    fixtures/nixos-host-roles
+    skeletons/nixos-host-roles
+    tests/module-fixture.nix
+    scripts/bootstrap-k3s-agent-token.sh
+    scripts/vault/__pycache__
+    platform/inventory/fleet.yaml
+    platform/cluster/flux/apps
+    platform/cluster/flux/clusters
+    platform/cluster/flux/rendered
+    nomad
+    consul
+  )
+
+  local path
+  for path in "${forbidden[@]}"; do
+    forbid_path "${path}"
   done
 }
 
@@ -61,13 +95,20 @@ check_shell_syntax() {
   local path
   while IFS= read -r path; do
     bash -n "${path}" || record_failure "Invalid shell syntax: ${path}"
-  done < <(find scripts -type f -name '*.sh' | sort)
+  done < <(find scripts tests .specify/scripts -type f -name '*.sh' | sort)
 }
 
 check_python_syntax() {
   local path
   while IFS= read -r path; do
-    python3 -m py_compile "${path}" || record_failure "Invalid Python syntax: ${path}"
+    python3 - "${path}" <<'PY' || record_failure "Invalid Python syntax: ${path}"
+import ast
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+PY
   done < <(find scripts -type f -name '*.py' | sort)
 }
 
@@ -127,35 +168,46 @@ sys.exit(1 if failures else 0)
 PY
 }
 
-check_output_names() {
-  if grep --line-number -E 'platform-blueprints-platform-blueprints|platformBlueprints\.platformBlueprints' flake.nix; then
-    record_failure "Found doubled platform marker in public outputs or docs"
+check_repository_boundary() {
+  local scan_files=()
+  local local_marker_regex
+  local_marker_regex="personal""Stack|en""schede|frank""furt|deploy[.]pub|/Users""/|/opt/personal""-stack|BEGIN (OPENSSH|RSA|EC|DSA) PRIVATE"" KEY|AGE-SECRET""-KEY"
+  while IFS= read -r path; do
+    scan_files+=("${path}")
+  done < <(find scripts tests packs examples skeletons fixtures docs schemas .github .specify -type f | sort)
+
+  if [[ "${#scan_files[@]}" -gt 0 ]] &&
+    grep --line-number -E "${local_marker_regex}" "${scan_files[@]}"; then
+    record_failure "Found consumer-local or secret marker in shared implementation files"
   fi
 }
 
-check_extraction_boundary() {
-  local forbidden_paths=(
-    "platform/inventory/fleet.yaml"
-    "platform/cluster/flux/apps"
-    "platform/cluster/flux/clusters"
-    "platform/cluster/flux/rendered"
-    "nomad"
-    "consul"
-  )
-  local path
-  for path in "${forbidden_paths[@]}"; do
-    if [[ -e "${path}" ]]; then
-      record_failure "Forbidden consumer-local path present: ${path}"
-    fi
-  done
-
+check_legacy_brand_references() {
   local scan_files=()
+  local old_org old_org_lower legacy_regex
+  old_org="Extra""Toast"
+  old_org_lower="extra""toast"
+  legacy_regex="${old_org}|${old_org_lower}|github:${old_org}|ghcr[.]io/${old_org_lower}|@${old_org_lower}|dev[.]${old_org_lower}|schemas[.]${old_org_lower}"
   while IFS= read -r path; do
     scan_files+=("${path}")
-  done < <(find flake.nix lib modules scripts tests packs examples skeletons fixtures docs -type f ! -path 'scripts/validate-repository.sh' | sort)
+  done < <(find . -type f \
+    ! -path './.git/*' \
+    ! -path './CHANGELOG.md' \
+    ! -path './scripts/validate-repository.sh' \
+    ! -name '*.pyc' \
+    | sort)
 
-  if grep --line-number -E 'personalStack|enschede|frankfurt|jorisjonkers|deploy\.pub|/Users/|/opt/personal-stack|BEGIN (OPENSSH|RSA|EC|DSA) PRIVATE KEY|AGE-SECRET-KEY' "${scan_files[@]}"; then
-    record_failure "Found reference-local or secret marker in shared implementation files"
+  if [[ "${#scan_files[@]}" -gt 0 ]] &&
+    grep --line-number -E "${legacy_regex}" "${scan_files[@]}"; then
+    record_failure "Found legacy coordinate outside historical changelog"
+  fi
+}
+
+check_output_names() {
+  local output_name_regex
+  output_name_regex="platform-blueprints-platform""-blueprints|platform""Blueprints[.]platform""Blueprints"
+  if grep --line-number -R -E "${output_name_regex}" README.md docs scripts tests packs examples skeletons fixtures schemas .github .specify; then
+    record_failure "Found doubled platform marker in public outputs or docs"
   fi
 }
 
@@ -184,12 +236,14 @@ check_vault_policy_compiler() {
   grep -q 'rabbitmq/roles/app-rabbitmq' "${tmpdir}/full.yaml" || record_failure "Vault compiler full fixture did not emit RabbitMQ role commands"
 }
 
-check_required_files
+check_required_paths
+check_forbidden_paths
 check_shell_syntax
 check_python_syntax
 check_json_yaml || record_failure "JSON/YAML validation failed"
+check_repository_boundary
+check_legacy_brand_references
 check_output_names
-check_extraction_boundary
 check_vault_policy_compiler
 
 if [[ "${#failures[@]}" -gt 0 ]]; then

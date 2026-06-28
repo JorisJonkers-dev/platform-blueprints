@@ -4,7 +4,9 @@
   "packages": {
     ".": {
       "package-name": "platform-blueprints",
-      "release-type": "simple"
+      "changelog-path": "CHANGELOG.md",
+      "include-component-in-tag": false,
+      "bump-minor-pre-major": true
     }
   }
 }
