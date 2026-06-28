@@ -31,8 +31,8 @@ jobs:
         shell: bash
         run: /tmp/actionlint -color .github/workflows/*.yml
 
-  validate:
-    name: Validate
+  repository:
+    name: Repository validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,20 +53,20 @@ jobs:
         shell: bash
         run: bash tests/scripts/flux-render-validation-smoke.sh
 
-      - name: Run Nix flake check when available
-        shell: bash
-        run: |
-          set -euo pipefail
-          if command -v nix >/dev/null 2>&1; then
-            nix flake check --print-build-logs
-          else
-            echo "nix is not available; repository validation fallback completed"
-          fi
+  flux-render:
+    name: Flux render reusable
+    uses: JorisJonkers-dev/github-workflows/.github/workflows/flux-render-validate.yml@v0.6.0
+    with:
+      overlay-paths: |
+        tests/fixtures/flux-render-good
+      mode: strict
+      crd-catalog-source: JorisJonkers-dev/platform-blueprints
+      crd-catalog-ref: ${{ github.head_ref || github.ref_name }}
 
   pipeline-complete:
     name: Pipeline Complete
     if: always()
-    needs: [actionlint, validate]
+    needs: [actionlint, repository, flux-render]
     runs-on: ubuntu-latest
     steps:
       - uses: re-actors/alls-green@release/v1

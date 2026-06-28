@@ -64,7 +64,7 @@ done
 
 failures=0
 
-while IFS=$'\t' read -r group service source_path required description; do
+while IFS=$'\t' read -r group service source_path required _description; do
   [[ -z "${group}" || "${group}" == \#* || "${group}" == "host_group" ]] && continue
   [[ "${required}" == "true" ]] || continue
   status="$(awk -F '\t' -v g="${group}" -v s="${service}" '$1 == g && $2 == s { print $5; exit }' "${run_dir}/archives.tsv")"
