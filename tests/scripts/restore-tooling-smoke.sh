@@ -50,7 +50,11 @@ fi
 snapshot_dir="${tmpdir}/snapshots"
 mkdir -p "${snapshot_dir}"
 printf 'snapshot payload\n' > "${snapshot_dir}/example.snapshot"
+printf 'vault raft fixture\n' > "${snapshot_dir}/vault-raft.snapshot"
+printf '{"example":true}\n' > "${snapshot_dir}/service-export.json"
 chmod +x tests/fixtures/restore/example-snapshot-restore.sh
+chmod +x tests/fixtures/restore/example-vault-raft-restore.sh
+chmod +x tests/fixtures/restore/example-http-api-import.sh
 
 scripts/restore/restore-service-snapshots.sh \
   --plugins examples/restore/snapshot-restore-plugins.tsv \
@@ -62,6 +66,26 @@ scripts/restore/restore-service-snapshots.sh \
 scripts/restore/restore-service-snapshots.sh \
   --plugins examples/restore/snapshot-restore-plugins.tsv \
   --snapshot-dir "${snapshot_dir}" >/dev/null
+
+scripts/restore/restore-vault-raft-snapshot.sh \
+  --namespace example-vault \
+  --pod vault-0 \
+  --snapshot "${snapshot_dir}/vault-raft.snapshot" \
+  --dry-run >/dev/null
+
+scripts/restore/restore-http-api-export.sh \
+  --namespace example-system \
+  --service example-api \
+  --remote-port 15672 \
+  --path /api/import \
+  --input "${snapshot_dir}/service-export.json" \
+  --no-auth \
+  --dry-run >/dev/null
+
+if scripts/restore/restore-http-api-export.sh --namespace example-system --service example-api --remote-port 15672 --input "${snapshot_dir}/service-export.json" --no-auth --dry-run >/dev/null 2>&1; then
+  echo "Expected HTTP API restore to require --path" >&2
+  exit 1
+fi
 
 run_dir="${tmpdir}/run"
 mkdir -p "${run_dir}/primary" "${run_dir}/snapshots"

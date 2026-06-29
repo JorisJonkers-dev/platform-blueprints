@@ -57,6 +57,40 @@ retry() {
   done
 }
 
+strip_non_resource_documents() {
+  local input="$1"
+  local output="$2"
+
+  awk '
+    function flush() {
+      if (!seen) return
+      if (haskind || hasapi) {
+        if (started) print "---"
+        printf "%s", buf
+        started = 1
+      } else {
+        dropped++
+        printf "   dropped non-resource document%s (first content line: %s)\n", \
+          (src ? " " src : ""), (firstline ? firstline : "<empty>") > "/dev/stderr"
+      }
+      buf = ""; seen = 0; haskind = 0; hasapi = 0; src = ""; firstline = ""
+    }
+    /^---[[:space:]]*$/ { flush(); next }
+    {
+      seen = 1
+      buf = buf $0 "\n"
+      if (firstline == "" && $0 ~ /[^[:space:]]/ && $0 !~ /^[[:space:]]*#/) { firstline = $0 }
+      if ($0 ~ /^kind:[[:space:]]/) { haskind = 1 }
+      if ($0 ~ /^apiVersion:[[:space:]]/) { hasapi = 1 }
+      line = $0; sub(/^[[:space:]]+/, "", line); if (line ~ /^# Source:/) { src = line }
+    }
+    END {
+      flush()
+      if (dropped) printf "==> dropped %d non-resource document(s)\n", dropped > "/dev/stderr"
+    }
+  ' "${input}" > "${output}"
+}
+
 flux_root=""
 cluster_path=""
 apps_path=""
@@ -167,6 +201,12 @@ if [[ "${enable_helm}" == "true" ]]; then
     done < <(find "${apps_path}" -name Chart.yaml | sort)
   fi
 fi
+
+echo "==> drop non-resource documents before kubeconform"
+stripped_output="$(mktemp "${TMPDIR:-/tmp}/platform-blueprints-flux-stripped.XXXXXX.yaml")"
+strip_non_resource_documents "${render_output}" "${stripped_output}"
+rm -f "${render_output}"
+render_output="${stripped_output}"
 
 kubeconform_args=(-summary)
 if [[ "${strict}" == "true" ]]; then

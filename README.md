@@ -128,6 +128,13 @@ Verify and restore runs with the scripts under `scripts/backup` and
 repository does not embed Vault, Consul, Nomad, RabbitMQ, host paths, or
 credential lookup commands.
 
+Service-native restore primitives include:
+
+- `scripts/restore/restore-vault-raft-snapshot.sh`
+- `scripts/restore/restore-http-api-export.sh`
+
+Sanitized example playbooks live under `docs/runbooks`.
+
 ## Skeleton Models
 
 Working packs and tooling are supported by input-model examples:
@@ -136,6 +143,7 @@ Working packs and tooling are supported by input-model examples:
 - `skeletons/rabbitmq-data-service`
 - `skeletons/vault-bootstrap-policy`
 - `fixtures/vault-bootstrap-policy`
+- `docs/runbooks`
 - `docs/dns-zone-policy.md`
 
 These examples are not inventories, rendered output, or live secret material.

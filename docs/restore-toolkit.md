@@ -17,6 +17,8 @@ names, hostnames, image choices, paths, and credentials outside this repository.
 5. Restore host-path archives with `scripts/restore/restore-hostpath-archive.sh`.
 6. Restore PVC archives with `scripts/restore/restore-pvc-archive.sh`.
 7. Restore service-native snapshots with `scripts/restore/restore-service-snapshots.sh`.
+8. Restore Vault raft snapshots with `scripts/restore/restore-vault-raft-snapshot.sh`.
+9. Import HTTP API exports with `scripts/restore/restore-http-api-export.sh`.
 
 ## Primitive Inputs
 
@@ -81,6 +83,56 @@ command_path <snapshot-dir>/<input_file>
 
 The command owns service-specific details such as namespaces, ports, API paths,
 credentials, and import flags.
+
+### `restore-vault-raft-snapshot.sh`
+
+Required inputs:
+
+- `--snapshot <vault-raft.snapshot>`
+- `--namespace <ns>`
+- `--pod <name>`
+
+Optional inputs:
+
+- `--container <name>`
+- `--vault-addr <url>`
+- `--vault-token-env <name>`
+- `--vault-token-file <path>`
+- `--kubectl <path>`
+- `--dry-run`
+
+The script reads the Vault token from an environment variable or token file at
+execution time. It does not embed a namespace, pod name, token, Vault path, or
+bootstrap command.
+
+### `restore-http-api-export.sh`
+
+Required inputs:
+
+- `--input <file>`
+- `--namespace <ns>`
+- `--service <name>`
+- `--remote-port <port>`
+- `--path <path>`
+
+Optional inputs:
+
+- `--local-port <port>`
+- `--scheme http|https`
+- `--method <method>`
+- `--content-type <value>`
+- `--username-env <name>` and `--password-env <name>`
+- `--username-file <path>` and `--password-file <path>`
+- `--no-auth`
+- `--kubectl <path>`
+- `--curl <path>`
+- `--dry-run`
+
+The script port-forwards a caller-owned Kubernetes Service and posts the input
+file to the caller-owned API path. For example, a consumer can use it for a
+RabbitMQ definitions import by passing that service's namespace, service name,
+management port, `/api/definitions`, and credentials from environment variables
+or files.
 
 ### `verify-restore-run.sh`
 
