@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/JorisJonkers-dev/platform-blueprints/compare/v1.2.0...v1.3.0) (2026-06-29)
+
+
+### Features
+
+* add deploy v2 platform packs and hygiene ([#3](https://github.com/JorisJonkers-dev/platform-blueprints/issues/3)) ([a650021](https://github.com/JorisJonkers-dev/platform-blueprints/commit/a6500214c5020a82935110945e2d08400ddb1284))
+
 ## [1.2.0](https://github.com/JorisJonkers-dev/platform-blueprints/compare/v1.1.0...v1.2.0) (2026-06-28)
 
 
