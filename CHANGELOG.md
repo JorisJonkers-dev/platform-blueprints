@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/JorisJonkers-dev/platform-blueprints/compare/v1.4.0...v1.5.0) (2026-06-29)
+
+
+### Features
+
+* add nvidia device plugin flux pack ([#8](https://github.com/JorisJonkers-dev/platform-blueprints/issues/8)) ([75241c9](https://github.com/JorisJonkers-dev/platform-blueprints/commit/75241c97cc8568d343c24e466224a68a3bb29183))
+
 ## [1.4.0](https://github.com/JorisJonkers-dev/platform-blueprints/compare/v1.3.0...v1.4.0) (2026-06-29)
 
 
