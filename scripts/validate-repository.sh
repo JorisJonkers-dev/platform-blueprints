@@ -23,6 +23,11 @@ forbid_path() {
 check_required_paths() {
   local required=(
     README.md
+    LICENSE
+    .editorconfig
+    .gitattributes
+    .gitignore
+    .github/CODEOWNERS
     docs/dns-zone-policy.md
     docs/restore-toolkit.md
     docs/strict-flux-render-validation.md
@@ -33,6 +38,11 @@ check_required_paths() {
     packs/flux-core/README.md
     packs/edge/README.md
     packs/edge-middleware/README.md
+    packs/edge-middleware/profiles.yaml
+    packs/edge-middleware/default-public.yaml
+    packs/edge-middleware/sso-forward-auth.yaml
+    packs/longhorn-site-storage/README.md
+    packs/gateway-api-preview/README.md
     packs/rabbitmq-data-service/README.md
     packs/observability/README.md
     schemas/crds
@@ -54,6 +64,8 @@ check_required_paths() {
     tests/scripts/restore-tooling-smoke.sh
     tests/scripts/flux-render-validation-smoke.sh
     .github/workflows/ci.yml
+    .github/workflows/add-to-project.yml
+    .github/workflows/repository-hygiene.yml
     .github/workflows/release.yml
     renovate.json
     release-please-config.json
@@ -95,7 +107,7 @@ check_shell_syntax() {
   local path
   while IFS= read -r path; do
     bash -n "${path}" || record_failure "Invalid shell syntax: ${path}"
-  done < <(find scripts tests .specify/scripts -type f -name '*.sh' | sort)
+  done < <(find scripts tests -type f -name '*.sh' | sort)
 }
 
 check_python_syntax() {
@@ -174,7 +186,7 @@ check_repository_boundary() {
   local_marker_regex="personal""Stack|en""schede|frank""furt|deploy[.]pub|/Users""/|/opt/personal""-stack|BEGIN (OPENSSH|RSA|EC|DSA) PRIVATE"" KEY|AGE-SECRET""-KEY"
   while IFS= read -r path; do
     scan_files+=("${path}")
-  done < <(find scripts tests packs examples skeletons fixtures docs schemas .github .specify -type f | sort)
+  done < <(find scripts tests packs examples skeletons fixtures docs schemas .github -type f | sort)
 
   if [[ "${#scan_files[@]}" -gt 0 ]] &&
     grep --line-number -E "${local_marker_regex}" "${scan_files[@]}"; then
@@ -206,7 +218,7 @@ check_legacy_brand_references() {
 check_output_names() {
   local output_name_regex
   output_name_regex="platform-blueprints-platform""-blueprints|platform""Blueprints[.]platform""Blueprints"
-  if grep --line-number -R -E "${output_name_regex}" README.md docs scripts tests packs examples skeletons fixtures schemas .github .specify; then
+  if grep --line-number -R -E "${output_name_regex}" README.md docs scripts tests packs examples skeletons fixtures schemas .github; then
     record_failure "Found doubled platform marker in public outputs or docs"
   fi
 }

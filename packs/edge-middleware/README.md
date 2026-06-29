@@ -6,6 +6,7 @@ can layer onto an edge deployment:
 - forward-auth middleware
 - security/response headers
 - named CSP profiles
+- default public middleware chain
 - local certificate file-provider ConfigMap
 - dashboard `IngressRoute` guarded by an auth/header chain
 

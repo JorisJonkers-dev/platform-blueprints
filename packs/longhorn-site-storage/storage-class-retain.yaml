@@ -1,0 +1,17 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: "${LONGHORN_RETAIN_STORAGE_CLASS_NAME}"
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "${LONGHORN_RETAIN_STORAGE_CLASS_DEFAULT}"
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  numberOfReplicas: "${LONGHORN_RETAIN_REPLICA_COUNT}"
+  staleReplicaTimeout: "${LONGHORN_RETAIN_STALE_REPLICA_TIMEOUT}"
+  fsType: "${LONGHORN_RETAIN_FS_TYPE}"
+  dataLocality: "${LONGHORN_RETAIN_DATA_LOCALITY}"
+  diskSelector: "${LONGHORN_RETAIN_DISK_SELECTOR}"
+  nodeSelector: "${LONGHORN_RETAIN_NODE_SELECTOR}"

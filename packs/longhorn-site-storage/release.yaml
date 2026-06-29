@@ -1,0 +1,45 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: "${LONGHORN_HELM_RELEASE_NAME}"
+  namespace: "${LONGHORN_NAMESPACE}"
+spec:
+  interval: "${LONGHORN_HELM_RELEASE_INTERVAL}"
+  chart:
+    spec:
+      chart: "${LONGHORN_HELM_CHART_NAME}"
+      version: "${LONGHORN_HELM_CHART_VERSION}"
+      sourceRef:
+        kind: HelmRepository
+        name: "${LONGHORN_HELM_REPOSITORY_NAME}"
+        namespace: "${LONGHORN_NAMESPACE}"
+  install:
+    remediation:
+      retries: ${LONGHORN_INSTALL_RETRIES}
+  upgrade:
+    remediation:
+      retries: ${LONGHORN_UPGRADE_RETRIES}
+  values:
+    defaultSettings:
+      defaultDataPath: "${LONGHORN_DEFAULT_DATA_PATH}"
+      defaultReplicaCount: ${LONGHORN_DEFAULT_REPLICA_COUNT}
+      storageMinimalAvailablePercentage: ${LONGHORN_STORAGE_MIN_AVAILABLE_PERCENTAGE}
+      storageOverProvisioningPercentage: ${LONGHORN_STORAGE_OVER_PROVISIONING_PERCENTAGE}
+      nodeDownPodDeletionPolicy: "${LONGHORN_NODE_DOWN_POD_DELETION_POLICY}"
+      replicaAutoBalance: "${LONGHORN_REPLICA_AUTO_BALANCE}"
+      taintToleration: "${LONGHORN_TAINT_TOLERATION}"
+      systemManagedComponentsNodeSelector: "${LONGHORN_SYSTEM_NODE_SELECTOR}"
+    persistence:
+      defaultClass: ${LONGHORN_DEFAULT_CLASS_ENABLED}
+      defaultFsType: "${LONGHORN_DEFAULT_FS_TYPE}"
+      defaultClassReplicaCount: ${LONGHORN_DEFAULT_CLASS_REPLICA_COUNT}
+      defaultDataLocality: "${LONGHORN_DEFAULT_DATA_LOCALITY}"
+      reclaimPolicy: "${LONGHORN_DEFAULT_RECLAIM_POLICY}"
+    longhornManager:
+      nodeSelector:
+        "${LONGHORN_MANAGER_NODE_SELECTOR_KEY}": "${LONGHORN_MANAGER_NODE_SELECTOR_VALUE}"
+    longhornDriver:
+      nodeSelector:
+        "${LONGHORN_DRIVER_NODE_SELECTOR_KEY}": "${LONGHORN_DRIVER_NODE_SELECTOR_VALUE}"
+    longhornUI:
+      replicas: ${LONGHORN_UI_REPLICAS}
