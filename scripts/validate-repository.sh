@@ -30,6 +30,8 @@ check_required_paths() {
     .github/CODEOWNERS
     docs/dns-zone-policy.md
     docs/restore-toolkit.md
+    docs/runbooks/flux-bootstrap-playbook.md
+    docs/runbooks/stateful-restore-playbook.md
     docs/strict-flux-render-validation.md
     examples/backup/manifest.tsv
     examples/backup/expected-paths.tsv
@@ -54,8 +56,10 @@ check_required_paths() {
     scripts/backup/verify-backup-run.sh
     scripts/backup/audit-backup-scope.sh
     scripts/restore/restore-hostpath-archive.sh
+    scripts/restore/restore-http-api-export.sh
     scripts/restore/restore-pvc-archive.sh
     scripts/restore/restore-service-snapshots.sh
+    scripts/restore/restore-vault-raft-snapshot.sh
     scripts/restore/verify-restore-run.sh
     scripts/vault/compile-vault-bootstrap-policy.py
     fixtures/vault-bootstrap-policy/minimal-policy.yaml

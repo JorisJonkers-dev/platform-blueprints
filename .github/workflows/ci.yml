@@ -15,6 +15,26 @@
   'contents': 'read'
 
 'jobs':
+  'gitleaks':
+    'name': 'Gitleaks'
+    'runs-on': 'ubuntu-latest'
+    'steps':
+      - 'uses': 'actions/checkout@v6'
+        'with':
+          'fetch-depth': 0
+
+      - 'name': 'Install gitleaks'
+        'shell': 'bash'
+        'run': |
+          set -euo pipefail
+          version=8.28.0
+          curl -fsSL "https://github.com/gitleaks/gitleaks/releases/download/v${version}/gitleaks_${version}_linux_x64.tar.gz" -o /tmp/gitleaks.tar.gz
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+
+      - 'name': 'Scan repository'
+        'shell': 'bash'
+        'run': '/tmp/gitleaks detect --source . --redact --exit-code 1'
+
   'actionlint':
     'name': 'Actionlint'
     'runs-on': 'ubuntu-latest'
@@ -68,6 +88,7 @@
     'name': 'Pipeline Complete'
     'if': 'always()'
     'needs':
+      - 'gitleaks'
       - 'actionlint'
       - 'repository'
       - 'flux-render'

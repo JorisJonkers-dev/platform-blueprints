@@ -1,2 +1,4 @@
 # artifact	input_file	required	command_path	description
 example-snapshot	example.snapshot	true	./tests/fixtures/restore/example-snapshot-restore.sh	Example service-native restore fixture
+vault-raft	vault-raft.snapshot	false	./tests/fixtures/restore/example-vault-raft-restore.sh	Example Vault raft snapshot restore fixture
+http-api-export	service-export.json	false	./tests/fixtures/restore/example-http-api-import.sh	Example HTTP API export import fixture
