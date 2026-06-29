@@ -1,7 +1,7 @@
 # platform-blueprints
 
-Reusable Kubernetes, Flux, CRD schema, backup, restore, and validation
-blueprints for JorisJonkers-dev platform repositories.
+Reusable Kubernetes, Flux, storage, edge, CRD schema, backup, restore, and
+validation blueprints for JorisJonkers-dev platform repositories.
 
 ## Consumer Boundary
 
@@ -12,6 +12,7 @@ may contain:
 - A pinned CRD schema catalog for offline render validation.
 - Validation scripts that operate on caller-owned paths.
 - Backup, restore, and Vault bootstrap tooling that takes caller-owned inputs.
+- Gateway API preview and Longhorn storage packs with only placeholder values.
 - Documentation, examples, tests, CI, and release metadata for this artifact.
 
 Reusable host modules and Nix helpers live in
@@ -32,8 +33,12 @@ Reusable parameterized packs live under:
 - `packs/edge`: Cloudflare ClusterIssuer, default TLSStore, and forward-auth
   middleware.
 - `packs/edge-middleware`: Traefik forward-auth, response/security headers,
-  named CSP profiles, local certificate file-provider config, and dashboard
-  exposure.
+  named CSP profiles, default public middleware chains, local certificate
+  file-provider config, and dashboard exposure.
+- `packs/gateway-api-preview`: GatewayClass and public/LAN Gateway templates
+  for preview route rendering.
+- `packs/longhorn-site-storage`: Longhorn Helm release, retained StorageClass,
+  and recurring job templates for consumer-owned storage adoption plans.
 - `packs/rabbitmq-data-service`: RabbitMQ Helm release, OAuth2 management
   config, VSO internal credentials, ServiceMonitor, storage, and placement.
 - `packs/observability`: metrics, Grafana, Loki, Tempo, Alloy, Gatus, alerts,
@@ -140,3 +145,14 @@ These examples are not inventories, rendered output, or live secret material.
 Releases are managed with release-please. Consumers should pin an exact tag or
 locked revision and let Renovate propose updates in their own repository. Each
 consumer can review and advance the shared platform version independently.
+
+## Links
+
+- [Organization profile](https://github.com/JorisJonkers-dev)
+- [Security policy](https://github.com/JorisJonkers-dev/.github/security/policy)
+- [Changelog](./CHANGELOG.md)
+- [License](./LICENSE)
+
+Copyright (c) Joris Jonkers. Source available for viewing only; use, copying,
+modification, redistribution, deployment, or reuse is not licensed. See
+[LICENSE](./LICENSE).

@@ -21,8 +21,14 @@ Kubernetes resources still validate against kubeconform's pinned built-in
 Catalog entries:
 
 - `cert-manager.io/Certificate_v1.json`
+- `gateway.networking.k8s.io/GatewayClass_v1.json`
+- `gateway.networking.k8s.io/Gateway_v1.json`
+- `gateway.networking.k8s.io/HTTPRoute_v1.json`
+- `gateway.networking.k8s.io/ReferenceGrant_v1beta1.json`
 - `helm.toolkit.fluxcd.io/HelmRelease_v2.json`
 - `kustomize.toolkit.fluxcd.io/Kustomization_v1.json`
+- `longhorn.io/RecurringJob_v1beta2.json`
+- `longhorn.io/Setting_v1beta2.json`
 - `secrets.hashicorp.com/VaultAuth_v1beta1.json`
 - `secrets.hashicorp.com/VaultConnection_v1beta1.json`
 - `secrets.hashicorp.com/VaultDynamicSecret_v1beta1.json`

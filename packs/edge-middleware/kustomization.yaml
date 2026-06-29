@@ -2,8 +2,9 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - namespace.yaml
-  - forward-auth.yaml
+  - sso-forward-auth.yaml
   - security-headers.yaml
-  - csp-profiles.yaml
+  - profiles.yaml
+  - default-public.yaml
   - local-cert-file-provider.yaml
   - dashboard.yaml

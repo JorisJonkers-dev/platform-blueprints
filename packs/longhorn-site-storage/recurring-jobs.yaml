@@ -1,0 +1,29 @@
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: "${LONGHORN_RECURRING_SNAPSHOT_JOB_NAME}"
+  namespace: "${LONGHORN_NAMESPACE}"
+spec:
+  cron: "${LONGHORN_RECURRING_SNAPSHOT_CRON}"
+  task: snapshot
+  groups:
+    - "${LONGHORN_RECURRING_JOB_GROUP}"
+  retain: ${LONGHORN_RECURRING_SNAPSHOT_RETAIN}
+  concurrency: ${LONGHORN_RECURRING_SNAPSHOT_CONCURRENCY}
+  labels:
+    platform.jorisjonkers.dev/backup-scope: "${LONGHORN_RECURRING_JOB_BACKUP_SCOPE}"
+---
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: "${LONGHORN_RECURRING_BACKUP_JOB_NAME}"
+  namespace: "${LONGHORN_NAMESPACE}"
+spec:
+  cron: "${LONGHORN_RECURRING_BACKUP_CRON}"
+  task: backup
+  groups:
+    - "${LONGHORN_RECURRING_JOB_GROUP}"
+  retain: ${LONGHORN_RECURRING_BACKUP_RETAIN}
+  concurrency: ${LONGHORN_RECURRING_BACKUP_CONCURRENCY}
+  labels:
+    platform.jorisjonkers.dev/backup-scope: "${LONGHORN_RECURRING_JOB_BACKUP_SCOPE}"

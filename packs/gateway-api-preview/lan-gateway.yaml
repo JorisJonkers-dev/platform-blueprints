@@ -1,0 +1,35 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: "${GATEWAY_API_LAN_GATEWAY_NAME}"
+  namespace: "${GATEWAY_API_LAN_NAMESPACE}"
+  labels:
+    platform.jorisjonkers.dev/channel: lan
+spec:
+  gatewayClassName: "${GATEWAY_API_CLASS_NAME}"
+  listeners:
+    - name: http
+      hostname: "${GATEWAY_API_LAN_HOSTNAME}"
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              platform.jorisjonkers.dev/lan-routes: "true"
+    - name: https
+      hostname: "${GATEWAY_API_LAN_TLS_HOSTNAME}"
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: "${GATEWAY_API_LAN_TLS_SECRET_NAME}"
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              platform.jorisjonkers.dev/lan-routes: "true"

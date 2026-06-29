@@ -1,74 +1,78 @@
-name: CI
+'name': 'CI'
 
-on:
-  pull_request:
-  push:
-    branches: [main]
-  workflow_dispatch:
+'on':
+  'pull_request':
+  'push':
+    'branches':
+      - 'main'
+  'workflow_dispatch':
 
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+'concurrency':
+  'group': 'ci-${{ github.workflow }}-${{ github.ref }}'
+  'cancel-in-progress': '${{ github.ref != ''refs/heads/main'' }}'
 
-permissions:
-  contents: read
+'permissions':
+  'contents': 'read'
 
-jobs:
-  actionlint:
-    name: Actionlint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+'jobs':
+  'actionlint':
+    'name': 'Actionlint'
+    'runs-on': 'ubuntu-latest'
+    'steps':
+      - 'uses': 'actions/checkout@v6'
 
-      - name: Install actionlint
-        shell: bash
-        run: |
+      - 'name': 'Install actionlint'
+        'shell': 'bash'
+        'run': |
           set -euo pipefail
           curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash -o /tmp/download-actionlint.bash
           bash /tmp/download-actionlint.bash latest /tmp
 
-      - name: Lint GitHub Actions workflows
-        shell: bash
-        run: /tmp/actionlint -color .github/workflows/*.yml
+      - 'name': 'Lint GitHub Actions workflows'
+        'shell': 'bash'
+        'run': '/tmp/actionlint -color .github/workflows/*.yml'
 
-  repository:
-    name: Repository validation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+  'repository':
+    'name': 'Repository validation'
+    'runs-on': 'ubuntu-latest'
+    'steps':
+      - 'uses': 'actions/checkout@v6'
 
-      - name: Validate repository
-        shell: bash
-        run: bash scripts/validate-repository.sh
+      - 'name': 'Validate repository'
+        'shell': 'bash'
+        'run': 'bash scripts/validate-repository.sh'
 
-      - name: Run backup tooling smoke test
-        shell: bash
-        run: bash tests/scripts/backup-tooling-smoke.sh
+      - 'name': 'Run backup tooling smoke test'
+        'shell': 'bash'
+        'run': 'bash tests/scripts/backup-tooling-smoke.sh'
 
-      - name: Run restore tooling smoke test
-        shell: bash
-        run: bash tests/scripts/restore-tooling-smoke.sh
+      - 'name': 'Run restore tooling smoke test'
+        'shell': 'bash'
+        'run': 'bash tests/scripts/restore-tooling-smoke.sh'
 
-      - name: Run Flux render validation smoke test
-        shell: bash
-        run: bash tests/scripts/flux-render-validation-smoke.sh
+      - 'name': 'Run Flux render validation smoke test'
+        'shell': 'bash'
+        'run': 'bash tests/scripts/flux-render-validation-smoke.sh'
 
-  flux-render:
-    name: Flux render reusable
-    uses: JorisJonkers-dev/github-workflows/.github/workflows/flux-render-validate.yml@v0.6.0
-    with:
-      overlay-paths: |
+  'flux-render':
+    'name': 'Flux render reusable'
+    'uses': 'JorisJonkers-dev/github-workflows/.github/workflows/flux-render-validate.yml@v0.8.0'
+    'with':
+      'overlay-paths': |
         tests/fixtures/flux-render-good
-      mode: strict
-      crd-catalog-source: JorisJonkers-dev/platform-blueprints
-      crd-catalog-ref: ${{ github.head_ref || github.ref_name }}
+      'mode': 'strict'
+      'crd-catalog-source': 'JorisJonkers-dev/platform-blueprints'
+      'crd-catalog-ref': '${{ github.head_ref || github.ref_name }}'
 
-  pipeline-complete:
-    name: Pipeline Complete
-    if: always()
-    needs: [actionlint, repository, flux-render]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: re-actors/alls-green@release/v1
-        with:
-          jobs: ${{ toJSON(needs) }}
+  'pipeline-complete':
+    'name': 'Pipeline Complete'
+    'if': 'always()'
+    'needs':
+      - 'actionlint'
+      - 'repository'
+      - 'flux-render'
+    'runs-on': 'ubuntu-latest'
+    'steps':
+      - 'uses': 're-actors/alls-green@release/v1'
+        'with':
+          'jobs': '${{ toJSON(needs) }}'
