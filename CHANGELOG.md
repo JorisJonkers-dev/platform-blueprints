@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/JorisJonkers-dev/platform-blueprints/compare/v1.3.0...v1.4.0) (2026-06-29)
+
+
+### Features
+
+* extract flux validation restore helpers ([#6](https://github.com/JorisJonkers-dev/platform-blueprints/issues/6)) ([0d0bc72](https://github.com/JorisJonkers-dev/platform-blueprints/commit/0d0bc7288d6779dd8e7396048748c11fab33e82f))
+
 ## [1.3.0](https://github.com/JorisJonkers-dev/platform-blueprints/compare/v1.2.0...v1.3.0) (2026-06-29)
 
 
